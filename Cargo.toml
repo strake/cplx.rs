@@ -1,0 +1,10 @@
+[package]
+name = "cplx"
+version = "0.0.1"
+authors = ["M Farkas-Dyck <strake888@gmail.com>"]
+description = "Complex and hypercomplex numbers"
+repository = "https://github.com/strake/cplx.rs"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+typenum = { version = "1.2.*", features = ["no_std"] }
