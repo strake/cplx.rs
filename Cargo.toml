@@ -1,0 +1,7 @@
+[package]
+name = "cplx"
+version = "0.1.0"
+authors = ["M Farkas-Dyck <strake888@gmail.com>"]
+
+[dependencies.peano-natural]
+path = "/home/strake/perilla/peano-natural.rs"
