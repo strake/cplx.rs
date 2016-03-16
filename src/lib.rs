@@ -1,3 +1,4 @@
+#![feature(const_fn)]
 #![feature(zero_one)]
 
 #![no_std]
@@ -20,11 +21,11 @@ impl<A: Neg<Output = A>> Sign<A> for N1 { fn sign(a: A) -> A { a.neg() } }
 pub struct Complex<A, S: Sign<A> = N1>(PhantomData<S>, A, A);
 
 impl<S: Sign<A>, A> Complex<A, S> {
-    #[inline] pub fn from_rect(re: A, im: A) -> Self { Complex(PhantomData, re, im) }
+    #[inline] pub const fn from_rect(re: A, im: A) -> Self { Complex(PhantomData, re, im) }
     #[inline] pub fn to_rect(self) -> (A, A) { let Complex(_, re, im) = self; (re, im) }
 }
 
-#[inline] pub fn from_rect<S: Sign<A>, A>(re: A, im: A) -> Complex<A, S> { Complex::<A, S>::from_rect(re, im) }
+#[inline] pub const fn from_rect<S: Sign<A>, A>(re: A, im: A) -> Complex<A, S> { Complex::<A, S>::from_rect(re, im) }
 
 impl<S: Sign<A>, A: Clone> Clone for Complex<A, S> {
     #[inline] fn clone(&self) -> Self {
