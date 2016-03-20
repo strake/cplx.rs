@@ -22,16 +22,13 @@ pub struct Complex<A, S: Sign<A> = N1>(PhantomData<S>, A, A);
 
 impl<S: Sign<A>, A> Complex<A, S> {
     #[inline] pub const fn from_rect(re: A, im: A) -> Self { Complex(PhantomData, re, im) }
-    #[inline] pub fn to_rect(self) -> (A, A) { let Complex(_, re, im) = self; (re, im) }
+    #[inline] pub const fn to_rect(self) -> (A, A) { (self.1, self.2) }
 }
 
 #[inline] pub const fn from_rect<S: Sign<A>, A>(re: A, im: A) -> Complex<A, S> { Complex::<A, S>::from_rect(re, im) }
 
 impl<S: Sign<A>, A: Clone> Clone for Complex<A, S> {
-    #[inline] fn clone(&self) -> Self {
-        let &Complex(_, ref a, ref b) = self;
-        Complex(PhantomData, a.clone(), b.clone())
-    }
+    #[inline] fn clone(&self) -> Self { Complex(PhantomData, self.1.clone(), self.2.clone()) }
 }
 
 impl<S: Sign<A>, A: Copy> Copy for Complex<A, S> {}
