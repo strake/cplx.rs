@@ -8,4 +8,4 @@ license = "MIT OR Apache-2.0"
 documentation = "https://docs.rs/cplx/"
 
 [dependencies]
-typenum = { version = "1.2.*", features = ["no_std"] }
+typenum = { version = "1.2", features = ["no_std"] }
