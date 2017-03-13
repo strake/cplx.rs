@@ -123,28 +123,28 @@ impl<S: Sign<A>, A: Copy + Zero + Add<Output = A> + Neg<Output = A> + Conjugable
     #[test] fn complex_basis() {
         type T = Complex<isize>;
         let i: T = from_rect(0, 1);
-        assert!(i*i == -T::one());
+        assert_eq!(-T::one(), i*i);
     }
 
     #[test] fn split_complex_basis() {
         type T = Complex<isize, P1>;
         let i: T = from_rect(0, 1);
-        assert!(i*i == T::one());
+        assert_eq!(T::one(), i*i);
     }
 
     #[test] fn dual_basis() {
         type T = Complex<isize, Z0>;
         let i: T = from_rect(0, 1);
-        assert!(i*i == T::zero());
+        assert_eq!(T::zero(), i*i);
     }
 
     #[test] fn quaternion_basis() {
         type T = Complex<Complex<isize>>;
+        let one = T::one();
         let i: T = from_rect(from_rect(0, 1), from_rect(0, 0));
         let j: T = from_rect(from_rect(0, 0), from_rect(1, 0));
         let k: T = from_rect(from_rect(0, 0), from_rect(0, 1));
-        assert!(i*j ==  k && j*k ==  i && k*i ==  j &&
-                k*j == -i && j*i == -k && i*k == -j &&
-                i*i == -T::one() && j*j == -T::one() && k*k == -T::one());
+        assert_eq!((i*j, j*k, k*i, k*j, j*i, i*k,  i*i,  j*j,  k*k),
+                   ( k,   i,   j,  -i,  -k,  -j,  -one, -one, -one));
     }
 }
