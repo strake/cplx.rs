@@ -18,6 +18,7 @@ impl<A>                  Sign<A> for P1 { fn sign(a: A) -> A { a } }
 impl<A: Neg<Output = A>> Sign<A> for N1 { fn sign(a: A) -> A { a.neg() } }
 
 /// Cayley-Dickson construction
+#[derive(Debug)]
 pub struct Complex<A, S: Sign<A> = N1>(PhantomData<S>, A, A);
 
 impl<S: Sign<A>, A> Complex<A, S> {
