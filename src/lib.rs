@@ -1,5 +1,4 @@
 #![feature(const_fn)]
-#![feature(zero_one)]
 
 #![no_std]
 
@@ -7,15 +6,35 @@ extern crate typenum;
 
 use core::cmp::*;
 use core::marker::PhantomData;
-use core::num::*;
 use core::ops::*;
 use typenum::consts::{ P1, N1 };
 use typenum::int::{ Integer, Z0 };
 
 pub trait Sign<A> : Integer { fn sign(A) -> A; }
-impl<A: Zero>            Sign<A> for Z0 { fn sign(_: A) -> A { Zero::zero() } }
 impl<A>                  Sign<A> for P1 { fn sign(a: A) -> A { a } }
 impl<A: Neg<Output = A>> Sign<A> for N1 { fn sign(a: A) -> A { a.neg() } }
+
+// TODO: generalize when we have #[no_std] num traits
+impl Sign<()> for Z0 { fn sign((): ()) -> () { () } }
+macro_rules! impl_Sign_Z0 { ($t: ty) => (impl Sign<$t> for Z0 { fn sign(_: $t) -> $t { 0 as $t } }) }
+impl_Sign_Z0!(isize);
+impl_Sign_Z0!(usize);
+impl_Sign_Z0!(i8);
+impl_Sign_Z0!(u8);
+impl_Sign_Z0!(i16);
+impl_Sign_Z0!(u16);
+impl_Sign_Z0!(i32);
+impl_Sign_Z0!(u32);
+impl_Sign_Z0!(i64);
+impl_Sign_Z0!(u64);
+impl_Sign_Z0!(f32);
+impl_Sign_Z0!(f64);
+
+impl<A> Sign<Complex<A, Z0>> for Z0 where Z0: Sign<A> {
+    fn sign(Complex(_, a, b): Complex<A, Z0>) -> Complex<A, Z0> {
+        Complex(PhantomData, <Z0 as Sign<A>>::sign(a), <Z0 as Sign<A>>::sign(b))
+    }
+}
 
 /// Cayley-Dickson construction
 #[derive(Debug)]
@@ -64,11 +83,7 @@ impl_Conjugable_id!(i64);
 impl_Conjugable_id!(f32);
 impl_Conjugable_id!(f64);
 
-impl<S: Sign<A>, A: Zero + Add<Output = A>> Zero for Complex<A, S> {
-    #[inline] fn zero() -> Self { Complex(PhantomData, Zero::zero(), Zero::zero()) }
-}
-
-impl<S: Sign<A>, A: Zero + Add<Output = A>> Add for Complex<A, S> {
+impl<S: Sign<A>, A: Add<Output = A>> Add for Complex<A, S> {
     type Output = Self;
     #[inline] fn add(self, Complex(_, c, d): Self) -> Self {
         let Complex(_, a, b) = self;
@@ -76,7 +91,7 @@ impl<S: Sign<A>, A: Zero + Add<Output = A>> Add for Complex<A, S> {
     }
 }
 
-impl<S: Sign<A>, A: Zero + Sub<Output = A>> Sub for Complex<A, S> {
+impl<S: Sign<A>, A: Sub<Output = A>> Sub for Complex<A, S> {
     type Output = Self;
     #[inline] fn sub(self, Complex(_, c, d): Self) -> Self {
         let Complex(_, a, b) = self;
@@ -84,7 +99,7 @@ impl<S: Sign<A>, A: Zero + Sub<Output = A>> Sub for Complex<A, S> {
     }
 }
 
-impl<S: Sign<A>, A: Zero + Neg<Output = A>> Neg for Complex<A, S> {
+impl<S: Sign<A>, A: Neg<Output = A>> Neg for Complex<A, S> {
     type Output = Self;
     #[inline] fn neg(self) -> Self {
         let Complex(_, a, b) = self;
@@ -92,11 +107,7 @@ impl<S: Sign<A>, A: Zero + Neg<Output = A>> Neg for Complex<A, S> {
     }
 }
 
-impl<S: Sign<A>, A: Zero + Add<Output = A> + One> One for Complex<A, S> {
-    #[inline] fn one() -> Self { Complex(PhantomData, One::one(), Zero::zero()) }
-}
-
-impl<S: Sign<A>, A: Copy + Zero + Add<Output = A> + Conjugable + Mul<Output = A>> Mul for Complex<A, S> {
+impl<S: Sign<A>, A: Copy + Add<Output = A> + Conjugable + Mul<Output = A>> Mul for Complex<A, S> {
     type Output = Self;
     #[inline] fn mul(self, Complex(_, c, d): Self) -> Self {
         let Complex(_, a, b) = self;
@@ -104,7 +115,7 @@ impl<S: Sign<A>, A: Copy + Zero + Add<Output = A> + Conjugable + Mul<Output = A>
     }
 }
 
-impl<S: Sign<A>, A: Copy + Zero + Add<Output = A> + Neg<Output = A> + Conjugable + Mul<Output = A> + Div<Output = A>> Div for Complex<A, S> {
+impl<S: Sign<A>, A: Copy + Add<Output = A> + Neg<Output = A> + Conjugable + Mul<Output = A> + Div<Output = A>> Div for Complex<A, S> {
     type Output = Self;
     #[inline] fn div(self, other: Self) -> Self {
         let Complex(_, a, b) =  self*other.conjugate();
@@ -114,7 +125,6 @@ impl<S: Sign<A>, A: Copy + Zero + Add<Output = A> + Neg<Output = A> + Conjugable
 }
 
 #[cfg(test)] mod tests {
-    use core::num::*;
     use typenum::consts::P1;
     use typenum::int::Z0;
 
@@ -123,24 +133,24 @@ impl<S: Sign<A>, A: Copy + Zero + Add<Output = A> + Neg<Output = A> + Conjugable
     #[test] fn complex_basis() {
         type T = Complex<isize>;
         let i: T = from_rect(0, 1);
-        assert_eq!(-T::one(), i*i);
+        assert_eq!(from_rect(-1, 0), i*i);
     }
 
     #[test] fn split_complex_basis() {
         type T = Complex<isize, P1>;
         let i: T = from_rect(0, 1);
-        assert_eq!(T::one(), i*i);
+        assert_eq!(from_rect( 1, 0), i*i);
     }
 
     #[test] fn dual_basis() {
         type T = Complex<isize, Z0>;
         let i: T = from_rect(0, 1);
-        assert_eq!(T::zero(), i*i);
+        assert_eq!(from_rect(0, 0), i*i);
     }
 
     #[test] fn quaternion_basis() {
         type T = Complex<Complex<isize>>;
-        let one = T::one();
+        let one = from_rect(from_rect(1, 0), from_rect(0, 0));
         let i: T = from_rect(from_rect(0, 1), from_rect(0, 0));
         let j: T = from_rect(from_rect(0, 0), from_rect(1, 0));
         let k: T = from_rect(from_rect(0, 0), from_rect(0, 1));
