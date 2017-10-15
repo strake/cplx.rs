@@ -16,19 +16,13 @@ impl<A: Neg<Output = A>> Sign<A> for N1 { fn sign(a: A) -> A { a.neg() } }
 
 // TODO: generalize when we have #[no_std] num traits
 impl Sign<()> for Z0 { fn sign((): ()) -> () { () } }
-macro_rules! impl_Sign_Z0 { ($t: ty) => (impl Sign<$t> for Z0 { fn sign(_: $t) -> $t { 0 as $t } }) }
-impl_Sign_Z0!(isize);
-impl_Sign_Z0!(usize);
-impl_Sign_Z0!(i8);
-impl_Sign_Z0!(u8);
-impl_Sign_Z0!(i16);
-impl_Sign_Z0!(u16);
-impl_Sign_Z0!(i32);
-impl_Sign_Z0!(u32);
-impl_Sign_Z0!(i64);
-impl_Sign_Z0!(u64);
-impl_Sign_Z0!(f32);
-impl_Sign_Z0!(f64);
+macro_rules! impl_Sign_Z0 {
+    ($t: ty) => (impl Sign<$t> for Z0 { fn sign(_: $t) -> $t { 0 as $t } });
+    ($($t: ty),*) => ($(impl_Sign_Z0!($t);)*);
+}
+impl_Sign_Z0!(f32, f64,
+              isize, i8, i16, i32, i64,
+              usize, u8, u16, u32, u64);
 
 impl<A> Sign<Complex<A, Z0>> for Z0 where Z0: Sign<A> {
     fn sign(Complex(_, a, b): Complex<A, Z0>) -> Complex<A, Z0> {
@@ -73,15 +67,11 @@ impl<S: Sign<A>, A: Add<Output = A> + Neg<Output = A> + Conjugable> Conjugable f
     }
 }
 
-macro_rules! impl_Conjugable_id { ($t: ty) => (impl Conjugable for $t { fn conjugate(self) -> Self { self } }) }
-impl_Conjugable_id!(());
-impl_Conjugable_id!(isize);
-impl_Conjugable_id!(i8);
-impl_Conjugable_id!(i16);
-impl_Conjugable_id!(i32);
-impl_Conjugable_id!(i64);
-impl_Conjugable_id!(f32);
-impl_Conjugable_id!(f64);
+macro_rules! impl_Conjugable_id {
+    ($t: ty) => (impl Conjugable for $t { fn conjugate(self) -> Self { self } });
+    ($($t: ty),*) => ($(impl_Conjugable_id!($t);)*);
+}
+impl_Conjugable_id!((), f32, f64, isize, i8, i16, i32, i64);
 
 impl<S: Sign<A>, A: Add<Output = A>> Add for Complex<A, S> {
     type Output = Self;
