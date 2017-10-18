@@ -26,7 +26,7 @@ impl_Sign_Z0!(f32, f64,
 
 impl<A> Sign<Complex<A, Z0>> for Z0 where Z0: Sign<A> {
     fn sign(Complex(_, a, b): Complex<A, Z0>) -> Complex<A, Z0> {
-        Complex(PhantomData, <Z0 as Sign<A>>::sign(a), <Z0 as Sign<A>>::sign(b))
+        Complex(PhantomData, Z0::sign(a), Z0::sign(b))
     }
 }
 
