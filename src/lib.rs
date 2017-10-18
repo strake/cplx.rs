@@ -56,6 +56,10 @@ impl<S: Sign<A>, A: PartialEq> PartialEq for Complex<A, S> {
 
 impl<S: Sign<A>, A: Eq> Eq for Complex<A, S> {}
 
+impl<S: Sign<A>, A: Copy> From<A> for Complex<A, S> where Z0: Sign<A> {
+    fn from(x: A) -> Self { from_rect(x, Z0::sign(x)) }
+}
+
 pub trait Conjugable {
     fn conjugate(self) -> Self;
 }
