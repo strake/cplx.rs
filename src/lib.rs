@@ -2,33 +2,20 @@
 
 #![no_std]
 
+extern crate idem;
 extern crate typenum;
 
 use core::cmp::*;
 use core::marker::PhantomData;
 use core::ops::*;
+use idem::*;
 use typenum::consts::{ P1, N1 };
 use typenum::int::{ Integer, Z0 };
 
 pub trait Sign<A> : Integer { fn sign(A) -> A; }
 impl<A>                  Sign<A> for P1 { fn sign(a: A) -> A { a } }
 impl<A: Neg<Output = A>> Sign<A> for N1 { fn sign(a: A) -> A { a.neg() } }
-
-// TODO: generalize when we have #[no_std] num traits
-impl Sign<()> for Z0 { fn sign((): ()) -> () { () } }
-macro_rules! impl_Sign_Z0 {
-    ($t: ty) => (impl Sign<$t> for Z0 { fn sign(_: $t) -> $t { 0 as $t } });
-    ($($t: ty),*) => ($(impl_Sign_Z0!($t);)*);
-}
-impl_Sign_Z0!(f32, f64,
-              isize, i8, i16, i32, i64,
-              usize, u8, u16, u32, u64);
-
-impl<A> Sign<Complex<A, Z0>> for Z0 where Z0: Sign<A> {
-    fn sign(Complex(_, a, b): Complex<A, Z0>) -> Complex<A, Z0> {
-        Complex(PhantomData, Z0::sign(a), Z0::sign(b))
-    }
-}
+impl<A: Zero>            Sign<A> for Z0 { fn sign(_: A) -> A { A::zero } }
 
 /// Cayley-Dickson construction
 #[derive(Debug)]
@@ -46,6 +33,14 @@ impl<S: Sign<A>, A: Clone> Clone for Complex<A, S> {
 }
 
 impl<S: Sign<A>, A: Copy> Copy for Complex<A, S> {}
+
+impl<S: Sign<A>, A: Zero> Zero for Complex<A, S> {
+    const zero: Self = from_rect(A::zero, A::zero);
+}
+
+impl<S: Sign<A>, A: Zero + One> One for Complex<A, S> {
+    const one: Self = from_rect(A::one, A::zero);
+}
 
 impl<S: Sign<A>, A: PartialEq> PartialEq for Complex<A, S> {
     #[inline] fn eq(&self, &Complex(_, ref c, ref d): &Self) -> bool {
