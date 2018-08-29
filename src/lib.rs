@@ -1,4 +1,7 @@
 #![feature(const_fn)]
+#![feature(const_fn_union)]
+#![feature(const_let)]
+#![feature(untagged_unions)]
 
 #![no_std]
 
@@ -23,7 +26,12 @@ pub struct Complex<A, S: Sign<A> = N1>(PhantomData<S>, A, A);
 
 impl<S: Sign<A>, A> Complex<A, S> {
     #[inline] pub const fn from_rect(re: A, im: A) -> Self { Complex(PhantomData, re, im) }
-    #[inline] pub const fn to_rect(self) -> (A, A) { (self.1, self.2) }
+    #[inline] pub const fn to_rect(self) -> (A, A) {
+        #[allow(unions_with_drop_fields)]
+        union U<A, S: Sign<A>> { c: Complex<A, S> }
+        let u = U { c: self };
+        unsafe { (u.c.1, u.c.2) }
+    }
 }
 
 #[inline] pub const fn from_rect<S: Sign<A>, A>(re: A, im: A) -> Complex<A, S> { Complex::<A, S>::from_rect(re, im) }
