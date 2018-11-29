@@ -1,9 +1,9 @@
+#![no_std]
+
 #![feature(const_fn)]
 #![feature(const_fn_union)]
 #![feature(const_let)]
 #![feature(untagged_unions)]
-
-#![no_std]
 
 extern crate idem;
 extern crate typenum;
