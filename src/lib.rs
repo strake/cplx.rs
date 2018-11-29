@@ -114,7 +114,9 @@ impl<S: Sign<A>, A: Copy + Add<Output = A> + Conjugable + Mul<Output = A>> Mul f
 
 impl<S: Sign<A>, A: Copy + Add<Output = A> + Neg<Output = A> + Conjugable + Mul<Output = A> + Div<Output = A>> Div for Complex<A, S> {
     type Output = Self;
-    #[inline] fn div(self, other: Self) -> Self {
+    #[allow(clippy::suspicious_arithmetic_impl)]
+    #[inline]
+    fn div(self, other: Self) -> Self {
         let Complex(_, a, b) =  self*other.conjugate();
         let Complex(_, c, _) = other*other.conjugate();
         Complex(PhantomData, a/c, b/c)
