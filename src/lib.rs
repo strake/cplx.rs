@@ -128,6 +128,18 @@ impl<S: Sign<A>, A: Copy + Add<Output = A> + Neg<Output = A> + Conjugable + Mul<
     }
 }
 
+/// Wraps a type to make it opaque to conjugation, i.e. `SelfConjugate(a).conjugate() = SelfConjugate(a)`.
+///
+/// It can be used to construct higher-order hypercomplex numbers, for example: the dual quaternion type over `A` is `Dual<SelfConjugate<Quaternion<A>>>`.
+#[repr(transparent)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct SelfConjugate<A>(pub A);
+
+impl<A> Conjugable for SelfConjugate<A> {
+    #[inline]
+    fn conjugate(self) -> Self { self }
+}
+
 #[cfg(test)] mod tests {
     use typenum::consts::P1;
     use typenum::int::Z0;
